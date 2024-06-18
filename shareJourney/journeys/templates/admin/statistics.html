@@ -1,0 +1,141 @@
+{% extends 'admin/base_site.html' %}
+
+{% block content %}
+
+<h1>Thống kê Hành trình</h1>
+
+<div>
+    <label for="month-picker">Chọn tháng, năm:</label>
+    <input type="month" id="month-picker" value="{{ now|date:'Y-m' }}">
+</div>
+
+<div class="statistics-container">
+    <div class="statistics">
+        <div class="statistic-box total-journeys">
+            <h3>Hành trình đã tạo trong tháng</h3>
+            <span id="total-journeys">0</span>
+        </div>
+        <div class="statistic-box total-active-journeys">
+            <h3>Hành trình đang hoạt động</h3>
+            <span id="total-active-journeys">0</span>
+        </div>
+        <div class="statistic-box total-completed-journeys">
+            <h3>Hành trình đã hoàn thành</h3>
+            <span id="total-completed-journeys">0</span>
+        </div>
+    </div>
+
+    <div class="chart-container">
+        <h2>Biểu đồ</h2>
+        <canvas id="myChart"></canvas>
+    </div>
+</div>
+<style>
+    h1{
+        text-align: center;
+        color: red;
+        font-weight: bold;
+    }
+    .statistics-container {
+        display: flex;
+        margin-bottom: 20px;
+    }
+
+    .statistics {
+        width: 25%;
+        margin: 100px 80px 0 0;
+    }
+
+    .chart-container {
+        margin-left: 20px;
+        width: 75%;
+        height: 400px;
+    }
+
+    .statistic-box {
+        text-align: center;
+        border: 3px solid #333;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .total-journeys {
+        background-color: rgba(75, 192, 192, 0.2);
+        border-color: rgba(75, 192, 192, 1);
+    }
+
+    .total-active-journeys {
+        background-color: rgba(54, 162, 235, 0.2);
+        border-color: rgba(54, 162, 235, 1);
+    }
+
+    .total-completed-journeys {
+        background-color: rgba(255, 99, 132, 0.2);
+        border-color: rgba(255, 99, 132, 1);
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var myChart;
+
+    function fetchStatistics(dateValue) {
+        $.ajax({
+            url: "{% url 'journey_statistics_data' %}",
+            data: {
+                date_value: dateValue
+            },
+            success: function(data) {
+                $('#total-journeys').text(data.total_journeys);
+                $('#total-active-journeys').text(data.total_active_journeys);
+                $('#total-completed-journeys').text(data.total_completed_journeys);
+
+                updateChart(data.total_journeys, data.total_active_journeys, data.total_completed_journeys);
+            },
+            error: function(error) {
+                console.error('Error fetching statistics:', error);
+            }
+        });
+    }
+
+    function updateChart(totalJourneys, activeJourneys, completedJourneys) {
+        if (!myChart) {
+            var ctx = document.getElementById('myChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Tổng hành trình', 'Đang hoạt động', 'Đã hoàn thành'],
+                    datasets: [{
+                        label: 'Thống kê Hành trình',
+                        data: [totalJourneys, activeJourneys, completedJourneys],
+                        backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 99, 132, 0.2)'],
+                        borderColor: ['rgba(75, 192, 192, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        } else {
+            myChart.data.datasets[0].data = [totalJourneys, activeJourneys, completedJourneys];
+            myChart.update();
+        }
+    }
+
+    $(document).ready(function() {
+        var initialDate = $('#month-picker').val();
+        fetchStatistics(initialDate);
+
+        $('#month-picker').on('change', function() {
+            var dateValue = $(this).val();
+            fetchStatistics(dateValue);
+        });
+    });
+</script>
+{% endblock %}
