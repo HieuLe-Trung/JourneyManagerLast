@@ -183,8 +183,8 @@ class CommentDetailSerializers(serializers.ModelSerializer):
     replies = RecursiveField(many=True)
 
     class Meta:
-        model = Comment
-        fields = ['user', 'id', 'content', 'created_date', 'replies']
+        model = CommentSerializers.Meta.model
+        fields = CommentSerializers.Meta.fields + ['user', 'created_date', 'replies']
 
 
 class CommentJourneySerializers(serializers.ModelSerializer):
@@ -203,8 +203,8 @@ class CommentJourneyDetailSerializers(serializers.ModelSerializer):
         return Participation.objects.filter(journey=journey, user=comment.user, is_approved=True).exists()
 
     class Meta:
-        model = CommentJourney
-        fields = ['user', 'id', 'content', 'created_date', 'is_member', 'replies']
+        model = CommentJourneySerializers.Meta.model
+        fields = CommentJourneySerializers.Meta.fields + ['user', 'created_date', 'is_member', 'replies']
 
 
 class ReportSerializer(serializers.ModelSerializer):

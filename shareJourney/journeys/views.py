@@ -100,10 +100,10 @@ class UserJourneysListView(generics.ListAPIView):  # danh sách hành trình mà
 
     def get_queryset(self):
         user = self.request.user
-        owned_journeys = Journey.objects.filter(user_create=user)
+        # owned_journeys = Journey.objects.filter(user_create=user)
         participated_journeys = Participation.objects.filter(user=user, is_approved=True).values_list('journey',
                                                                                                       flat=True)
-        return Journey.objects.filter(id__in=participated_journeys) | owned_journeys
+        return Journey.objects.filter(id__in=participated_journeys)
 
 
 class JourneyViewSet(viewsets.ModelViewSet):
